@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+http://www.springframework.org/schema/beans/spring-beans.xsd
+http://www.springframework.org/schema/tx
+http://www.springframework.org/schema/tx/spring-tx.xsd
+http://www.springframework.org/schema/aop
+http://www.springframework.org/schema/aop/spring-aop.xsd
+http://www.springframework.org/schema/context
+http://www.springframework.org/schema/context/spring-context.xsd">
+
+<!--   组件扫描  扫描service和mapper-->
+    <context:component-scan base-package="Tul">
+<!--        排除controller的扫描-->
+        <context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+    </context:component-scan>
+
+<!--    加载properties文件-->
+    <context:property-placeholder location="classpath:db.properties"></context:property-placeholder>
+<!--    使用druid的数据源-->
+    <bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource" init-method="init">
+<!--        注入连接属性-->
+        <property name="driverClassName" value="${jdbc.driver}"></property>
+        <property name="url" value="${jdbc.url}"></property>
+        <property name="username"  value="${jdbc.username}"></property>
+        <property name="password" value="${jdbc.password}"></property>
+
+<!--        设置初始化连接池大小-->
+        <property name="initialSize" value="5"></property>
+<!--        最大连接数-->
+        <property name="maxActive" value="10"></property>
+<!--        设置等待时间-->
+        <property name="maxWait" value="5000"></property>
+        <property name="filters" value="stat"></property>
+    </bean>
+
+
+<!--    配置sessionFactory工厂-->
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="dataSource" ref="dataSource"></property>
+<!--        加载mybatis核心文件-->
+        <property name="configLocation" value="classpath:mybatis/mybatis-configure.xml"></property>
+
+        <property name="mapperLocations" value="classpath:Tul.mapper/*.xml"/>
+    </bean>
+
+
+<!--    扫描mapper所在的包  为mapper创建实现类(加载映射关系)-->
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="basePackage" value="Tul.mapper"></property>
+    </bean>
+
+
+<!--    声明事务控制-->
+<!--    平台事务管理器-->
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"></property>
+    </bean>
+
+
+    <!--配置事务增强-->
+    <tx:advice id="txAdvice">
+        <tx:attributes>
+            <tx:method name="*"/>
+        </tx:attributes>
+    </tx:advice>
+
+    <!--事务的aop织入-->
+    <aop:config>
+        <aop:advisor advice-ref="txAdvice" pointcut="execution(* Tul.service.impl.*.*(..))"></aop:advisor>
+    </aop:config>
+
+</beans>

@@ -1,0 +1,6 @@
+Tul\pojo\User.class
+Tul\utlis\Result.class
+Tul\controller\UserController.class
+Tul\mapper\UserMapper.class
+Tul\service\impl\UserServiceImpl.class
+Tul\service\UserService.class
